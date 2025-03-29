@@ -5,6 +5,8 @@ interface HK {
   output: unknown;
 }
 
+type ApplyHK<I, H extends HK> = (H & { input: I })["output"];
+
 // Example Higher-Kinded types:
 
 interface NumberToString extends HK {
@@ -18,7 +20,7 @@ interface Identity extends HK {
 // Application of the HK to a type
 
 type MapProperties<O, M extends HK> = {
-  [K in keyof O]: (M & { input: O[K] })["output"];
+  [K in keyof O]: ApplyHK<O[K], M>;
 };
 
 // Example usage:
