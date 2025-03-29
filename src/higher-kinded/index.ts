@@ -1,13 +1,4 @@
-// Inspiration: https://github.com/sinclairzx81/parsebox
-
-interface HK {
-  input: unknown;
-  output: unknown;
-}
-
-type ApplyHK<I, H extends HK> = (H & { input: I })["output"];
-
-// Example Higher-Kinded types:
+import type { ApplyHK, HK } from "./hk";
 
 interface NumberToString extends HK {
   output: this["input"] extends number ? `${this["input"]}` : this["input"];
