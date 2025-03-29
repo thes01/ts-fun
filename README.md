@@ -1,15 +1,14 @@
 # ts-fun
 
+This repository contains some nice, fun, and useful TypeScript utilities. Checkout the `src` folder to see more.
+
+Currently added:
+
+1. Higher-kinded types
+2. Branded types
+
 To install dependencies:
 
 ```bash
 bun install
 ```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.2.6. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

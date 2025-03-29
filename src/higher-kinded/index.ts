@@ -5,6 +5,8 @@ interface HK {
   output: unknown;
 }
 
+// Example Higher-Kinded types:
+
 interface NumberToString extends HK {
   output: this["input"] extends number ? `${this["input"]}` : this["input"];
 }
@@ -13,9 +15,13 @@ interface Identity extends HK {
   output: this["input"];
 }
 
+// Application of the HK to a type
+
 type MapProperties<O, M extends HK> = {
   [K in keyof O]: (M & { input: O[K] })["output"];
 };
+
+// Example usage:
 
 const test_object = {
   a: 1,
