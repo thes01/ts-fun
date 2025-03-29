@@ -19,7 +19,7 @@ interface Identity extends HK {
 
 // Application of the HK to a type
 
-type MapProperties<O, M extends HK> = {
+type MapProperties<O extends object, M extends HK> = {
   [K in keyof O]: ApplyHK<O[K], M>;
 };
 
