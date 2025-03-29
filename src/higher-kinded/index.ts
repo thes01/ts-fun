@@ -1,7 +1,9 @@
 import type { ApplyHK, HK } from "./hk";
 
+type _NumberToString<T> = T extends number ? `${T}` : T;
+
 interface NumberToString extends HK {
-  output: this["input"] extends number ? `${this["input"]}` : this["input"];
+  output: _NumberToString<this["input"]>;
 }
 
 interface Identity extends HK {
