@@ -3,17 +3,26 @@ import type {
   ArrayValue,
   BooleanValue,
   NumberValue,
+  ObjectValue,
   StringValue,
+  UndefinedValue,
 } from "./value";
 
-export type PrimaryType = "string" | "number" | "boolean" | "array";
+export type PrimaryType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "undefined"
+  | "array"
+  | "object";
 
-interface TypeBase {
+export interface TypeBase {
   primary: PrimaryType | "union";
   specifiers: unknown;
 }
 
-interface StringType<E extends StringEnumType = "string"> extends TypeBase {
+export interface StringType<E extends StringEnumType = "string">
+  extends TypeBase {
   primary: "string";
   specifiers: {
     enum_type: E;
@@ -22,30 +31,40 @@ interface StringType<E extends StringEnumType = "string"> extends TypeBase {
 
 export type NumberUnitType = "scalar" | "length" | "angle";
 
-interface NumberType<T extends NumberUnitType = "scalar"> extends TypeBase {
+export interface NumberType<T extends NumberUnitType = "scalar">
+  extends TypeBase {
   primary: "number";
   specifiers: {
     number_type: T;
   };
 }
 
-interface BooleanType extends TypeBase {
+export interface BooleanType extends TypeBase {
   primary: "boolean";
   specifiers: undefined;
 }
 
-interface ArrayType<T extends TypeBase = TypeBase> extends TypeBase {
+export interface ArrayType<T extends TypeBase = TypeBase> extends TypeBase {
   primary: "array";
   specifiers: {
     element_type: T;
   };
 }
 
-// TODO: Array Type, Optional Type
+export interface ObjectType<P extends Record<string, TypeBase>>
+  extends TypeBase {
+  primary: "object";
+  specifiers: {
+    properties: P;
+  };
+}
 
-// ---------------------
+export interface UndefinedType extends TypeBase {
+  primary: "undefined";
+  specifiers: undefined;
+}
 
-type InferValue<T extends TypeBase> = T extends StringType<
+export type InferValue<T extends TypeBase> = T extends StringType<
   infer E extends StringEnumType
 >
   ? StringValue<InferEnumValue<E>>
@@ -53,8 +72,12 @@ type InferValue<T extends TypeBase> = T extends StringType<
   ? NumberValue<InferNumberUnitValue<U>>
   : T extends BooleanType
   ? BooleanValue
+  : T extends UndefinedType
+  ? UndefinedValue
   : T extends ArrayType<infer U>
   ? ArrayValue<InferValue<U>>
+  : T extends ObjectType<infer P>
+  ? ObjectValue<InferObjectProperties<P>>
   : T extends UnionType<infer U1, infer U2>
   ? InferValue<U1> | InferValue<U2>
   : never;
@@ -65,7 +88,12 @@ type InferNumberUnitValue<T extends NumberUnitType> = T extends "scalar"
   ? "mm" // LengthValue
   : "deg"; // AngleValue
 
-interface UnionType<T1 extends TypeBase, T2 extends TypeBase> extends TypeBase {
+type InferObjectProperties<P extends Record<string, TypeBase>> = {
+  [K in keyof P]: InferValue<P[K]>;
+};
+
+export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
+  extends TypeBase {
   primary: "union";
   specifiers: {
     t1: T1;
@@ -73,6 +101,14 @@ interface UnionType<T1 extends TypeBase, T2 extends TypeBase> extends TypeBase {
   };
 }
 
-type _t = InferValue<
-  UnionType<NumberType<"angle">, StringType<"string_axis_2">>
->;
+type MyRecordProperties = {
+  foo: NumberType<"length">;
+  bar: StringType<"string_axis_2">;
+};
+
+type MyRecord = ObjectType<MyRecordProperties>;
+
+// TODO: Add Evaluate
+type _t = InferValue<MyRecord>;
+
+type _tt = _t["value"];

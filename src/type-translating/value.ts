@@ -23,9 +23,19 @@ export interface BooleanValue {
   value: boolean;
 }
 
+export interface UndefinedValue {
+  primary: "undefined";
+  value: undefined;
+}
+
 //
 
 export interface ArrayValue<T extends ValueBase = ValueBase> {
   primary: "array";
   value: T[];
+}
+
+export interface ObjectValue<P extends Record<string, ValueBase>> {
+  primary: "object";
+  value: P;
 }
