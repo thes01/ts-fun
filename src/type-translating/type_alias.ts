@@ -1,4 +1,6 @@
 import type {
+  ArrayType,
+  FunctionType,
   InferValue,
   ObjectType,
   StringType,
@@ -18,10 +20,12 @@ interface TypeAliasMap {
     b: Optional<StringType<"string_axis_2">>;
     c: Optional<StringType>;
   }>;
+
+  join: FunctionType<{ "0": StringType; "1": StringType }, StringType>;
 }
 
 type TypeAlias = keyof TypeAliasMap;
 
 type InferFromAlias<T extends TypeAlias> = InferValue<TypeAliasMap[T]>;
 
-type _t = InferFromAlias<"my_object">["value"]["b"]["value"];
+type _t = InferFromAlias<"join">["value"];

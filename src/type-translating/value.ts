@@ -39,3 +39,11 @@ export interface ObjectValue<P extends Record<string, ValueBase>> {
   primary: "object";
   value: P;
 }
+
+export interface FunctionValue<
+  Args extends Record<string, ValueBase>,
+  O extends ValueBase
+> {
+  primary: "function";
+  value: (args: Args) => O;
+}

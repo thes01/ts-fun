@@ -2,6 +2,7 @@ import type { InferEnumValue, StringEnumType } from "./enum";
 import type {
   ArrayValue,
   BooleanValue,
+  FunctionValue,
   NumberValue,
   ObjectValue,
   StringValue,
@@ -14,7 +15,8 @@ export type PrimaryType =
   | "boolean"
   | "undefined"
   | "array"
-  | "object";
+  | "object"
+  | "function";
 
 export interface TypeBase {
   primary: PrimaryType | "union";
@@ -59,6 +61,17 @@ export interface ObjectType<P extends Record<string, TypeBase>>
   };
 }
 
+export interface FunctionType<
+  Args extends Record<string, TypeBase>,
+  O extends TypeBase
+> extends TypeBase {
+  primary: "function";
+  specifiers: {
+    args: Args;
+    output: O;
+  };
+}
+
 export interface UndefinedType extends TypeBase {
   primary: "undefined";
   specifiers: undefined;
@@ -77,7 +90,9 @@ export type InferValue<T extends TypeBase> = T extends StringType<
   : T extends ArrayType<infer U>
   ? ArrayValue<InferValue<U>>
   : T extends ObjectType<infer P>
-  ? ObjectValue<InferObjectProperties<P>>
+  ? ObjectValue<InferProperties<P>>
+  : T extends FunctionType<infer A, infer O>
+  ? FunctionValue<InferProperties<A>, InferValue<O>>
   : T extends UnionType<infer U1, infer U2>
   ? InferValue<U1> | InferValue<U2>
   : never;
@@ -88,7 +103,7 @@ type InferNumberUnitValue<T extends NumberUnitType> = T extends "scalar"
   ? "mm" // LengthValue
   : "deg"; // AngleValue
 
-type InferObjectProperties<P extends Record<string, TypeBase>> = {
+type InferProperties<P extends Record<string, TypeBase>> = {
   [K in keyof P]: InferValue<P[K]>;
 };
 
@@ -100,15 +115,3 @@ export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
     t2: T2;
   };
 }
-
-type MyRecordProperties = {
-  foo: NumberType<"length">;
-  bar: StringType<"string_axis_2">;
-};
-
-type MyRecord = ObjectType<MyRecordProperties>;
-
-// TODO: Add Evaluate
-type _t = InferValue<MyRecord>;
-
-type _tt = _t["value"];
