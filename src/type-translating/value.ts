@@ -7,7 +7,7 @@ export interface ValueBase {
 
 export type NumberUnitValue = undefined | "mm" | "deg";
 
-export interface NumberValue<U extends NumberUnitValue = NumberUnitValue> {
+export interface NumberValue<U extends NumberUnitValue = undefined> {
   primary: "number";
   value: number;
   unit: U;

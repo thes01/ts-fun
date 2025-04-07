@@ -1,4 +1,4 @@
-import type { InferEnumValue, StringAxis2, StringEnumType } from "./enum";
+import type { InferEnumValue, StringEnumType } from "./enum";
 import type {
   ArrayValue,
   BooleanValue,
@@ -9,7 +9,7 @@ import type {
 export type PrimaryType = "string" | "number" | "boolean" | "array";
 
 interface TypeBase {
-  primary: PrimaryType;
+  primary: PrimaryType | "union";
   specifiers: unknown;
 }
 
@@ -55,6 +55,8 @@ type InferValue<T extends TypeBase> = T extends StringType<
   ? BooleanValue
   : T extends ArrayType<infer U>
   ? ArrayValue<InferValue<U>>
+  : T extends UnionType<infer U1, infer U2>
+  ? InferValue<U1> | InferValue<U2>
   : never;
 
 type InferNumberUnitValue<T extends NumberUnitType> = T extends "scalar"
@@ -63,6 +65,14 @@ type InferNumberUnitValue<T extends NumberUnitType> = T extends "scalar"
   ? "mm" // LengthValue
   : "deg"; // AngleValue
 
-// type _t = InferValue<StringType<"string_axis_2">>;
+interface UnionType<T1 extends TypeBase, T2 extends TypeBase> extends TypeBase {
+  primary: "union";
+  specifiers: {
+    t1: T1;
+    t2: T2;
+  };
+}
 
-type _t = InferValue<NumberType<"length">>;
+type _t = InferValue<
+  UnionType<NumberType<"angle">, StringType<"string_axis_2">>
+>;
