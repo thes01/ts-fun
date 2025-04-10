@@ -101,6 +101,7 @@ export function object_value<P extends Record<string, ValueBase>>(
   };
 }
 
+// A little "trick" to make TS happy about narrowing down value by the node_type
 type NodeTypeValue = {
   [K in NodeType]: {
     node_type: K;
@@ -125,6 +126,8 @@ export function scene_object_value<T extends NodeType>(
   } as SceneObjectValue<T>;
 }
 
+// "UntypedFunctionValue" - it doesn't have any information about
+// the types expected to be passed as arguments
 export interface FunctionValue<
   Args extends Record<string, AnyValue> = {},
   O extends ValueBase = AnyValue
@@ -160,6 +163,8 @@ export function simplify_value<V extends AnyValue>(
       Object.entries(value.value).map(([k, v]) => [k, simplify_value(v)])
     ) as SimplifiedValue<V>;
   }
+
+  value.value satisfies string | number | boolean | undefined | Function;
   return value.value as SimplifiedValue<V>;
 }
 

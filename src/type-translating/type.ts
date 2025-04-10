@@ -200,6 +200,12 @@ export function union_type<T1 extends TypeBase, T2 extends TypeBase>(
   };
 }
 
+type OptionalType<T extends TypeBase> = UnionType<T, UndefinedType>;
+
+export function optional_type<T extends TypeBase>(type: T): OptionalType<T> {
+  return union_type(type, undefined_type());
+}
+
 export interface UnknownType extends TypeBase {
   primary: "unknown";
   specifiers: undefined;

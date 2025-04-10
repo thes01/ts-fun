@@ -17,8 +17,6 @@ import {
   type UnionType,
 } from "./type";
 
-export type Optional<T extends TypeBase> = UnionType<T, UndefinedType>;
-
 const number_type_map = {
   scalar: number_type("scalar"),
   length: number_type("length"),
