@@ -5,6 +5,7 @@ import type {
   FunctionValue,
   NumberValue,
   ObjectValue,
+  SceneObjectValue,
   StringValue,
   UndefinedValue,
 } from "./value";
@@ -16,6 +17,7 @@ export type PrimaryType =
   | "undefined"
   | "array"
   | "object"
+  | "scene_object"
   | "function";
 
 export interface TypeBase {
@@ -72,6 +74,20 @@ export interface FunctionType<
   };
 }
 
+export type NodeType = "field" | "list" | "space";
+export interface NodeTypeToValue {
+  field: 1;
+  list: 2;
+  space: 3;
+}
+
+export interface SceneObjectType<T extends NodeType> extends TypeBase {
+  primary: "scene_object";
+  specifiers: {
+    scene_object_type: T;
+  };
+}
+
 export interface UndefinedType extends TypeBase {
   primary: "undefined";
   specifiers: undefined;
@@ -91,6 +107,8 @@ export type InferValue<T extends TypeBase> = T extends StringType<
   ? ArrayValue<InferValue<U>>
   : T extends ObjectType<infer P>
   ? ObjectValue<InferProperties<P>>
+  : T extends SceneObjectType<infer N extends NodeType>
+  ? SceneObjectValue<N>
   : T extends FunctionType<infer A, infer O>
   ? FunctionValue<InferProperties<A>, InferValue<O>>
   : T extends UnionType<infer U1, infer U2>
@@ -109,3 +127,10 @@ export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
     t2: T2;
   };
 }
+
+// export interface BoxType<T extends TypeBase> extends TypeBase {
+//   primary: "box";
+//   specifiers: {
+//     boxed_type: T;
+//   };
+// }

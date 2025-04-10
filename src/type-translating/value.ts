@@ -1,5 +1,5 @@
 import type { StringEnumValue } from "./enum";
-import type { PrimaryType } from "./type";
+import type { NodeType, NodeTypeToValue, PrimaryType } from "./type";
 
 export interface ValueBase {
   primary: PrimaryType; // shared with expression primary
@@ -43,6 +43,19 @@ export interface ObjectValue<
   value: P;
 }
 
+type NodeTypeValue = {
+  [K in NodeType]: {
+    node_type: K;
+    value: NodeTypeToValue[K];
+  };
+}[NodeType];
+
+export type SceneObjectValue<T extends NodeType = NodeType> = NodeTypeValue & {
+  primary: "scene_object";
+  node_type: T;
+  value: NodeTypeToValue[T];
+};
+
 export interface FunctionValue<
   Args extends Record<string, AnyValue> = {},
   O extends ValueBase = AnyValue
@@ -58,7 +71,8 @@ export type AnyValue =
   | UndefinedValue
   | ArrayValue
   | ObjectValue
-  | FunctionValue;
+  | FunctionValue
+  | SceneObjectValue;
 
 export type SimplifiedValue<V extends ValueBase> = V extends ArrayValue<infer E>
   ? SimplifiedValue<E>[]
@@ -90,4 +104,10 @@ declare const b: AnyValue;
 
 if (b.primary === "number") {
   b.number_type;
+}
+
+if (b.primary === "scene_object") {
+  if (b.node_type === "field") {
+    b.value satisfies 1;
+  }
 }
