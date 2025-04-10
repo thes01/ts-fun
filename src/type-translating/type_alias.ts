@@ -1,13 +1,16 @@
 import type {
   ArrayType,
+  BooleanType,
   FunctionType,
   InferValue,
+  NumberType,
   ObjectType,
   StringType,
   TypeBase,
   UndefinedType,
   UnionType,
 } from "./type";
+import type { SimplifiedValue } from "./value";
 
 export type Optional<T extends TypeBase> = UnionType<T, UndefinedType>;
 
@@ -28,4 +31,4 @@ type TypeAlias = keyof TypeAliasMap;
 
 type InferFromAlias<T extends TypeAlias> = InferValue<TypeAliasMap[T]>;
 
-type _t = InferFromAlias<"join">["value"];
+type _t = SimplifiedValue<InferFromAlias<"my_object">>;

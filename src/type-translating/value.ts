@@ -6,13 +6,13 @@ export interface ValueBase {
   value: unknown;
 }
 
-export type NumberUnitValue = undefined | "mm" | "deg";
+export type NumberType = "scalar" | "length" | "angle";
 
-export interface NumberValue<U extends NumberUnitValue = undefined>
+export interface NumberValue<U extends NumberType = NumberType>
   extends ValueBase {
   primary: "number";
   value: number;
-  unit: U;
+  number_type: U;
 }
 
 export interface StringValue<E extends StringEnumValue = string>
@@ -31,8 +31,6 @@ export interface UndefinedValue extends ValueBase {
   value: undefined;
 }
 
-//
-
 export interface ArrayValue<T extends ValueBase = AnyValue> extends ValueBase {
   primary: "array";
   value: T[];
@@ -46,7 +44,7 @@ export interface ObjectValue<
 }
 
 export interface FunctionValue<
-  Args extends Record<string, ValueBase> = {},
+  Args extends Record<string, AnyValue> = {},
   O extends ValueBase = AnyValue
 > {
   primary: "function";
@@ -62,20 +60,34 @@ export type AnyValue =
   | ObjectValue
   | FunctionValue;
 
-export type RawValue<V extends ValueBase> = V extends ArrayValue<infer E>
-  ? RawValue<E>[]
+export type SimplifiedValue<V extends ValueBase> = V extends ArrayValue<infer E>
+  ? SimplifiedValue<E>[]
   : V extends ObjectValue<infer P>
-  ? { [K in keyof P]: RawValue<P[K]> }
+  ? { [K in keyof P]: SimplifiedValue<P[K]> }
   : V["value"];
 
-export function get_raw_value<V extends AnyValue>(value: V): RawValue<V> {
+export function simplify_value<V extends AnyValue>(
+  value: V
+): SimplifiedValue<V> {
   if (value.primary === "array") {
-    return value.value.map((v) => get_raw_value(v)) as RawValue<V>;
+    return value.value.map((v) => simplify_value(v)) as SimplifiedValue<V>;
   }
   if (value.primary === "object") {
     return Object.fromEntries(
-      Object.entries(value.value).map(([k, v]) => [k, get_raw_value(v)])
-    ) as RawValue<V>;
+      Object.entries(value.value).map(([k, v]) => [k, simplify_value(v)])
+    ) as SimplifiedValue<V>;
   }
-  return value.value as RawValue<V>;
+  return value.value as SimplifiedValue<V>;
+}
+
+// does not work on functions
+const a = simplify_value({
+  primary: "array",
+  value: [{ primary: "boolean", value: true }],
+});
+
+declare const b: AnyValue;
+
+if (b.primary === "number") {
+  b.number_type;
 }

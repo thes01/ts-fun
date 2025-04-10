@@ -82,7 +82,7 @@ export type InferValue<T extends TypeBase> = T extends StringType<
 >
   ? StringValue<InferEnumValue<E>>
   : T extends NumberType<infer U extends NumberUnitType>
-  ? NumberValue<InferNumberUnitValue<U>>
+  ? NumberValue<U>
   : T extends BooleanType
   ? BooleanValue
   : T extends UndefinedType
@@ -96,12 +96,6 @@ export type InferValue<T extends TypeBase> = T extends StringType<
   : T extends UnionType<infer U1, infer U2>
   ? InferValue<U1> | InferValue<U2>
   : never;
-
-type InferNumberUnitValue<T extends NumberUnitType> = T extends "scalar"
-  ? undefined // ScalarValue
-  : T extends "length"
-  ? "mm" // LengthValue
-  : "deg"; // AngleValue
 
 type InferProperties<P extends Record<string, TypeBase>> = {
   [K in keyof P]: InferValue<P[K]>;
