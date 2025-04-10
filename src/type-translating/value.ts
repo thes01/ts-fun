@@ -84,7 +84,7 @@ export function simplify_value<V extends AnyValue>(
   value: V
 ): SimplifiedValue<V> {
   if (value.primary === "array") {
-    return value.value.map((v) => simplify_value(v)) as SimplifiedValue<V>;
+    return value.value.map(simplify_value) as SimplifiedValue<V>;
   }
   if (value.primary === "object") {
     return Object.fromEntries(
@@ -93,12 +93,6 @@ export function simplify_value<V extends AnyValue>(
   }
   return value.value as SimplifiedValue<V>;
 }
-
-// does not work on functions
-const a = simplify_value({
-  primary: "array",
-  value: [{ primary: "boolean", value: true }],
-});
 
 declare const b: AnyValue;
 
