@@ -1,5 +1,6 @@
-import type { InferEnumValue, StringEnumType } from "./enum";
+import type { InferStringValue, StringEnumType } from "./enum";
 import type {
+  AnyValue,
   ArrayValue,
   BooleanValue,
   FunctionValue,
@@ -21,7 +22,7 @@ export type PrimaryType =
   | "function";
 
 export interface TypeBase {
-  primary: PrimaryType | "union";
+  primary: PrimaryType | "union" | "unknown";
   specifiers: unknown;
 }
 
@@ -30,6 +31,15 @@ export interface StringType<E extends StringEnumType = "string">
   primary: "string";
   specifiers: {
     enum_type: E;
+  };
+}
+
+export function string_type<E extends StringEnumType = "string">(
+  enum_type?: E
+): StringType<E> {
+  return {
+    primary: "string",
+    specifiers: { enum_type: enum_type ?? ("string" as E) },
   };
 }
 
@@ -43,9 +53,25 @@ export interface NumberType<T extends NumberUnitType = "scalar">
   };
 }
 
+export function number_type<T extends NumberUnitType>(
+  number_type: T
+): NumberType<T> {
+  return {
+    primary: "number",
+    specifiers: { number_type },
+  };
+}
+
 export interface BooleanType extends TypeBase {
   primary: "boolean";
   specifiers: undefined;
+}
+
+export function boolean_type(): BooleanType {
+  return {
+    primary: "boolean",
+    specifiers: undefined,
+  };
 }
 
 export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
@@ -55,12 +81,28 @@ export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
   };
 }
 
+export function array_type<T extends TypeBase>(element_type: T): ArrayType<T> {
+  return {
+    primary: "array",
+    specifiers: { element_type },
+  };
+}
+
 export interface ObjectType<
   P extends Record<string, TypeBase> = Record<string, AnyType>
 > extends TypeBase {
   primary: "object";
   specifiers: {
     properties: P;
+  };
+}
+
+export function object_type<P extends Record<string, TypeBase>>(
+  properties: P
+): ObjectType<P> {
+  return {
+    primary: "object",
+    specifiers: { properties },
   };
 }
 
@@ -90,15 +132,31 @@ export interface SceneObjectType<T extends NodeType = NodeType>
   };
 }
 
+export function scene_object_type<T extends NodeType>(
+  scene_object_type: T
+): SceneObjectType<T> {
+  return {
+    primary: "scene_object",
+    specifiers: { scene_object_type },
+  };
+}
+
 export interface UndefinedType extends TypeBase {
   primary: "undefined";
   specifiers: undefined;
 }
 
+export function undefined_type(): UndefinedType {
+  return {
+    primary: "undefined",
+    specifiers: undefined,
+  };
+}
+
 export type InferValue<T extends TypeBase> = T extends StringType<
   infer E extends StringEnumType
 >
-  ? StringValue<InferEnumValue<E>>
+  ? StringValue<InferStringValue<E>>
   : T extends NumberType<infer U extends NumberUnitType>
   ? NumberValue<U>
   : T extends BooleanType
@@ -115,6 +173,8 @@ export type InferValue<T extends TypeBase> = T extends StringType<
   ? FunctionValue<InferProperties<A>, InferValue<O>>
   : T extends UnionType<infer U1, infer U2>
   ? InferValue<U1> | InferValue<U2>
+  : T extends UnknownType
+  ? AnyValue
   : never;
 
 type InferProperties<P extends Record<string, TypeBase>> = {
@@ -130,6 +190,29 @@ export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
   };
 }
 
+export function union_type<T1 extends TypeBase, T2 extends TypeBase>(
+  t1: T1,
+  t2: T2
+): UnionType<T1, T2> {
+  return {
+    primary: "union",
+    specifiers: { t1, t2 },
+  };
+}
+
+export interface UnknownType extends TypeBase {
+  primary: "unknown";
+  specifiers: undefined;
+}
+
+export function unknown_type(): UnknownType {
+  return {
+    primary: "unknown",
+    specifiers: undefined,
+  };
+}
+
+// TODO: rename
 export type AnyType =
   | StringType
   | NumberType

@@ -1,57 +1,62 @@
-import type {
-  ArrayType,
-  BooleanType,
-  FunctionType,
-  InferValue,
-  NodeType,
-  NumberType,
-  NumberUnitType,
-  ObjectType,
-  PrimaryType,
-  SceneObjectType,
-  StringType,
-  TypeBase,
-  UndefinedType,
-  UnionType,
+import {
+  array_type,
+  boolean_type,
+  number_type,
+  object_type,
+  scene_object_type,
+  string_type,
+  undefined_type,
+  unknown_type,
+  type ArrayType,
+  type FunctionType,
+  type InferValue,
+  type ObjectType,
+  type StringType,
+  type TypeBase,
+  type UndefinedType,
+  type UnionType,
 } from "./type";
 
 export type Optional<T extends TypeBase> = UnionType<T, UndefinedType>;
 
-type NumberTypeMap = {
-  [K in NumberUnitType]: NumberType<K>;
+const number_type_map = {
+  scalar: number_type("scalar"),
+  length: number_type("length"),
+  angle: number_type("angle"),
 };
 
-type SceneObjectMap = {
-  [K in NodeType]: SceneObjectType<K>;
+const scene_object_map = {
+  field: scene_object_type("field"),
+  list: scene_object_type("list"),
+  space: scene_object_type("space"),
 };
 
-// todo: known object map
+const base_type_map = {
+  ...number_type_map,
+  ...scene_object_map,
+  string: string_type("string"),
+  number: number_type("scalar"),
+  boolean: boolean_type(),
+  undefined: undefined_type(),
+  unknown: unknown_type(),
+};
 
-interface BaseTypeMap extends NumberTypeMap, SceneObjectMap {
-  string: StringType;
-  number: NumberType<NumberUnitType>;
-  boolean: BooleanType;
-  undefined: UndefinedType;
+const type_map = {
+  ...base_type_map,
+  "list_item[]": array_type(object_type({ type: string_type("string") })),
+};
+
+type TypeMap = typeof type_map;
+
+export type TypeAlias = keyof TypeMap;
+
+export type AliasToType<T extends TypeAlias> = TypeMap[T];
+
+export function alias_to_type<T extends TypeAlias>(alias: T): AliasToType<T> {
+  return type_map[alias];
 }
 
-type OptionalTypeMap = {
-  [K in keyof BaseTypeMap as `${K}?`]: Optional<BaseTypeMap[K]>;
-};
-
-type ArrayTypeMap = {
-  [K in keyof BaseTypeMap as `${K}[]`]: ArrayType<BaseTypeMap[K]>;
-};
-
-interface TypeMap extends BaseTypeMap, OptionalTypeMap, ArrayTypeMap {
-  join: FunctionType<{ 0: StringType }, StringType>;
-  "list_item[]": ArrayType<ObjectType<{ type: StringType }>>;
-}
-
-type TypeAlias = keyof TypeMap;
-
-type InferFromAlias<T extends TypeAlias> = InferValue<TypeMap[T]>;
-
-export type GetType<T extends TypeAlias> = TypeMap[T];
+export type InferFromAlias<T extends TypeAlias> = InferValue<TypeMap[T]>;
 
 export type InferFrom<T extends TypeAlias | TypeBase> = T extends TypeAlias
   ? InferFromAlias<T>
@@ -59,9 +64,8 @@ export type InferFrom<T extends TypeAlias | TypeBase> = T extends TypeAlias
   ? InferValue<T>
   : never;
 
-type _t = InferFrom<"scalar[]">;
+type _t = InferFrom<"unknown">;
 
 declare const a: InferFrom<"string">;
-declare const foo: InferFrom<"join">;
-
-const b = foo.value([a]);
+// declare const foo: InferFrom<"join">;
+// const b = foo.value([a]);
