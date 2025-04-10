@@ -48,15 +48,16 @@ export interface BooleanType extends TypeBase {
   specifiers: undefined;
 }
 
-export interface ArrayType<T extends TypeBase = TypeBase> extends TypeBase {
+export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
   primary: "array";
   specifiers: {
     element_type: T;
   };
 }
 
-export interface ObjectType<P extends Record<string, TypeBase>>
-  extends TypeBase {
+export interface ObjectType<
+  P extends Record<string, TypeBase> = Record<string, AnyType>
+> extends TypeBase {
   primary: "object";
   specifiers: {
     properties: P;
@@ -64,8 +65,8 @@ export interface ObjectType<P extends Record<string, TypeBase>>
 }
 
 export interface FunctionType<
-  Args extends Record<string, TypeBase>,
-  O extends TypeBase
+  Args extends Record<string, TypeBase> = Record<string, AnyType>,
+  O extends TypeBase = AnyType
 > extends TypeBase {
   primary: "function";
   specifiers: {
@@ -81,7 +82,8 @@ export interface NodeTypeToValue {
   space: 3;
 }
 
-export interface SceneObjectType<T extends NodeType> extends TypeBase {
+export interface SceneObjectType<T extends NodeType = NodeType>
+  extends TypeBase {
   primary: "scene_object";
   specifiers: {
     scene_object_type: T;
@@ -128,9 +130,12 @@ export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
   };
 }
 
-// export interface BoxType<T extends TypeBase> extends TypeBase {
-//   primary: "box";
-//   specifiers: {
-//     boxed_type: T;
-//   };
-// }
+export type AnyType =
+  | StringType
+  | NumberType
+  | BooleanType
+  | UndefinedType
+  | ArrayType
+  | ObjectType
+  | SceneObjectType
+  | FunctionType;

@@ -1,8 +1,8 @@
 import type { StringEnumValue } from "./enum";
 import type { NodeType, NodeTypeToValue, PrimaryType } from "./type";
 
-export interface ValueBase {
-  primary: PrimaryType; // shared with expression primary
+interface ValueBase {
+  primary: PrimaryType;
   value: unknown;
 }
 
@@ -102,6 +102,7 @@ if (b.primary === "number") {
 
 if (b.primary === "scene_object") {
   if (b.node_type === "field") {
+    // YAY!
     b.value satisfies 1;
   }
 }
