@@ -1,3 +1,7 @@
+// Here is how to fix the problem:
+// `accept_base` should accept a union type of all possible subtypes,
+// instead of the base type.
+
 interface Base {
   foo: string;
 }
@@ -23,7 +27,6 @@ type DistributedContext<T extends Base = AnySub> =
   T extends infer A extends Base ? Context<A> : never;
 
 declare const sub_context: Context<Sub1>;
-
 declare function accept_base(context: DistributedContext): void;
 
 accept_base(sub_context);
