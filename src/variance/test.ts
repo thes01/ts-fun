@@ -8,6 +8,7 @@ interface Sub extends Base {
 
 interface Context<T extends Base = Base> {
   covariant: T;
+  // contravariant: (x: T) => void;
 }
 
 declare const sub_context: Context<Sub>;
