@@ -6,7 +6,8 @@ Currently added:
 
 1. Higher-kinded types
 2. Branded types
-3. Covariance and Contravariance
+3. (WIP) Simple type-value inferring system
+4. Covariance and Contravariance
 
 - a problem illustrated in problem.ts
 - a possible solution in fixed.ts
