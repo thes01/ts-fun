@@ -2,7 +2,7 @@ import type { InferStringValue, StringEnumType } from "./enum";
 import type { NodeType, NodeTypeToValue, PrimaryType } from "./type";
 
 interface ValueBase {
-  primary: PrimaryType;
+  primary_type: PrimaryType;
   value: unknown;
 }
 
@@ -10,7 +10,7 @@ export type NumberType = "scalar" | "length" | "angle";
 
 export interface NumberValue<U extends NumberType = NumberType>
   extends ValueBase {
-  primary: "number";
+  primary_type: "number";
   value: number;
   number_type: U;
 }
@@ -20,7 +20,7 @@ export function number_value(
   number_type: NumberType
 ): NumberValue {
   return {
-    primary: "number",
+    primary_type: "number",
     value,
     number_type,
   };
@@ -31,7 +31,7 @@ export const length_value = (value: number) => number_value(value, "length");
 export const angle_value = (value: number) => number_value(value, "angle");
 
 export interface StringValue<E extends string = string> extends ValueBase {
-  primary: "string";
+  primary_type: "string";
   value: E;
 }
 
@@ -40,37 +40,37 @@ export function string_value<E extends StringEnumType = "string">(
   _enum_type?: E
 ): StringValue<InferStringValue<E>> {
   return {
-    primary: "string",
+    primary_type: "string",
     value,
   };
 }
 
 export interface BooleanValue extends ValueBase {
-  primary: "boolean";
+  primary_type: "boolean";
   value: boolean;
 }
 
 export function boolean_value(value: boolean): BooleanValue {
   return {
-    primary: "boolean",
+    primary_type: "boolean",
     value,
   };
 }
 
 export interface UndefinedValue extends ValueBase {
-  primary: "undefined";
+  primary_type: "undefined";
   value: undefined;
 }
 
 export function undefined_value(): UndefinedValue {
   return {
-    primary: "undefined",
+    primary_type: "undefined",
     value: undefined,
   };
 }
 
 export interface ArrayValue<T extends ValueBase = AnyValue> extends ValueBase {
-  primary: "array";
+  primary_type: "array";
   value: T[];
 }
 
@@ -80,7 +80,7 @@ export function array_value<T extends ValueBase>(
   values: UniformArray<T>
 ): ArrayValue<T> {
   return {
-    primary: "array",
+    primary_type: "array",
     value: values,
   };
 }
@@ -88,7 +88,7 @@ export function array_value<T extends ValueBase>(
 export interface ObjectValue<
   P extends Record<string, ValueBase> = Record<string, AnyValue>
 > extends ValueBase {
-  primary: "object";
+  primary_type: "object";
   value: P;
 }
 
@@ -96,7 +96,7 @@ export function object_value<P extends Record<string, ValueBase>>(
   value: P
 ): ObjectValue<P> {
   return {
-    primary: "object",
+    primary_type: "object",
     value,
   };
 }
@@ -110,7 +110,7 @@ type NodeTypeValue = {
 }[NodeType];
 
 export type SceneObjectValue<T extends NodeType = NodeType> = NodeTypeValue & {
-  primary: "scene_object";
+  primary_type: "scene_object";
   node_type: T;
   value: NodeTypeToValue[T];
 };
@@ -120,7 +120,7 @@ export function scene_object_value<T extends NodeType>(
   value: NodeTypeToValue[T]
 ) {
   return {
-    primary: "scene_object",
+    primary_type: "scene_object",
     node_type,
     value,
   } as SceneObjectValue<T>;
@@ -132,7 +132,7 @@ export interface FunctionValue<
   Args extends Record<string, AnyValue> = {},
   O extends ValueBase = AnyValue
 > {
-  primary: "function";
+  primary_type: "function";
   value: (args: Args) => O;
 }
 
@@ -155,10 +155,10 @@ export type SimplifiedValue<V extends ValueBase> = V extends ArrayValue<infer E>
 export function simplify_value<V extends AnyValue>(
   value: V
 ): SimplifiedValue<V> {
-  if (value.primary === "array") {
+  if (value.primary_type === "array") {
     return value.value.map(simplify_value) as SimplifiedValue<V>;
   }
-  if (value.primary === "object") {
+  if (value.primary_type === "object") {
     return Object.fromEntries(
       Object.entries(value.value).map(([k, v]) => [k, simplify_value(v)])
     ) as SimplifiedValue<V>;
@@ -170,11 +170,11 @@ export function simplify_value<V extends AnyValue>(
 
 // declare const b: AnyValue;
 
-// if (b.primary === "number") {
+// if (b.primary_type === "number") {
 //   b.number_type;
 // }
 
-// if (b.primary === "scene_object") {
+// if (b.primary_type === "scene_object") {
 //   if (b.node_type === "field") {
 //     // YAY!
 //     b.value satisfies 1;

@@ -24,27 +24,27 @@ export function value_matches<T extends AnyType | TypeAlias>(
     type = type_or_alias;
   }
 
-  if (value.primary === "number") {
+  if (value.primary_type === "number") {
     return (
-      type.primary === "number" &&
+      type.primary_type === "number" &&
       value.number_type === type.specifiers.number_type
     );
   }
-  if (value.primary === "array") {
-    return type.primary === "array" && array_value_matches_type(value, type);
+  if (value.primary_type === "array") {
+    return type.primary_type === "array" && array_value_matches_type(value, type);
   }
-  if (value.primary === "object") {
-    return type.primary === "object" && object_value_matches_type(value, type);
+  if (value.primary_type === "object") {
+    return type.primary_type === "object" && object_value_matches_type(value, type);
   }
-  if (value.primary === "scene_object") {
+  if (value.primary_type === "scene_object") {
     return (
-      type.primary === "scene_object" &&
+      type.primary_type === "scene_object" &&
       value.node_type === type.specifiers.scene_object_type
     );
   }
 
-  value.primary satisfies "boolean" | "undefined" | "string" | "function";
-  return value.primary === type.primary;
+  value.primary_type satisfies "boolean" | "undefined" | "string" | "function";
+  return value.primary_type === type.primary;
 }
 
 function array_value_matches_type(value: ArrayValue, type: ArrayType): boolean {

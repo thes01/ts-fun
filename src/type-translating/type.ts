@@ -22,13 +22,13 @@ export type PrimaryType =
   | "function";
 
 export interface TypeBase {
-  primary: PrimaryType | "union" | "unknown";
+  primary_type: PrimaryType | "union" | "unknown";
   specifiers: unknown;
 }
 
 export interface StringType<E extends StringEnumType = "string">
   extends TypeBase {
-  primary: "string";
+  primary_type: "string";
   specifiers: {
     enum_type: E;
   };
@@ -38,7 +38,7 @@ export function string_type<E extends StringEnumType = "string">(
   enum_type?: E
 ): StringType<E> {
   return {
-    primary: "string",
+    primary_type: "string",
     specifiers: { enum_type: enum_type ?? ("string" as E) },
   };
 }
@@ -47,7 +47,7 @@ export type NumberUnitType = "scalar" | "length" | "angle";
 
 export interface NumberType<T extends NumberUnitType = "scalar">
   extends TypeBase {
-  primary: "number";
+  primary_type: "number";
   specifiers: {
     number_type: T;
   };
@@ -57,25 +57,25 @@ export function number_type<T extends NumberUnitType>(
   number_type: T
 ): NumberType<T> {
   return {
-    primary: "number",
+    primary_type: "number",
     specifiers: { number_type },
   };
 }
 
 export interface BooleanType extends TypeBase {
-  primary: "boolean";
+  primary_type: "boolean";
   specifiers: undefined;
 }
 
 export function boolean_type(): BooleanType {
   return {
-    primary: "boolean",
+    primary_type: "boolean",
     specifiers: undefined,
   };
 }
 
 export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
-  primary: "array";
+  primary_type: "array";
   specifiers: {
     element_type: T;
   };
@@ -83,7 +83,7 @@ export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
 
 export function array_type<T extends TypeBase>(element_type: T): ArrayType<T> {
   return {
-    primary: "array",
+    primary_type: "array",
     specifiers: { element_type },
   };
 }
@@ -91,7 +91,7 @@ export function array_type<T extends TypeBase>(element_type: T): ArrayType<T> {
 export interface ObjectType<
   P extends Record<string, TypeBase> = Record<string, AnyType>
 > extends TypeBase {
-  primary: "object";
+  primary_type: "object";
   specifiers: {
     properties: P;
   };
@@ -101,7 +101,7 @@ export function object_type<P extends Record<string, TypeBase>>(
   properties: P
 ): ObjectType<P> {
   return {
-    primary: "object",
+    primary_type: "object",
     specifiers: { properties },
   };
 }
@@ -110,7 +110,7 @@ export interface FunctionType<
   Args extends Record<string, TypeBase> = Record<string, AnyType>,
   O extends TypeBase = AnyType
 > extends TypeBase {
-  primary: "function";
+  primary_type: "function";
   specifiers: {
     args: Args;
     output: O;
@@ -126,7 +126,7 @@ export interface NodeTypeToValue {
 
 export interface SceneObjectType<T extends NodeType = NodeType>
   extends TypeBase {
-  primary: "scene_object";
+  primary_type: "scene_object";
   specifiers: {
     scene_object_type: T;
   };
@@ -136,19 +136,19 @@ export function scene_object_type<T extends NodeType>(
   scene_object_type: T
 ): SceneObjectType<T> {
   return {
-    primary: "scene_object",
+    primary_type: "scene_object",
     specifiers: { scene_object_type },
   };
 }
 
 export interface UndefinedType extends TypeBase {
-  primary: "undefined";
+  primary_type: "undefined";
   specifiers: undefined;
 }
 
 export function undefined_type(): UndefinedType {
   return {
-    primary: "undefined",
+    primary_type: "undefined",
     specifiers: undefined,
   };
 }
@@ -183,7 +183,7 @@ type InferProperties<P extends Record<string, TypeBase>> = {
 
 export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
   extends TypeBase {
-  primary: "union";
+  primary_type: "union";
   specifiers: {
     t1: T1;
     t2: T2;
@@ -195,7 +195,7 @@ export function union_type<T1 extends TypeBase, T2 extends TypeBase>(
   t2: T2
 ): UnionType<T1, T2> {
   return {
-    primary: "union",
+    primary_type: "union",
     specifiers: { t1, t2 },
   };
 }
@@ -207,13 +207,13 @@ export function optional_type<T extends TypeBase>(type: T): OptionalType<T> {
 }
 
 export interface UnknownType extends TypeBase {
-  primary: "unknown";
+  primary_type: "unknown";
   specifiers: undefined;
 }
 
 export function unknown_type(): UnknownType {
   return {
-    primary: "unknown",
+    primary_type: "unknown",
     specifiers: undefined,
   };
 }
