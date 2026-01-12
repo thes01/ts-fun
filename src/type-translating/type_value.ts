@@ -1,6 +1,6 @@
 import {
   string_type,
-  type AnyType,
+  type ExType,
   type ArrayType,
   type InferValueFromType,
   type ObjectType,
@@ -13,13 +13,13 @@ import {
   type ObjectValue,
 } from "./value";
 
-export function value_matches<T extends AnyType | TypeAlias>(
+export function value_matches<T extends ExType | TypeAlias>(
   value: AnyValue,
   type_or_alias: T
 ): value is InferFrom<T> {
-  let type: AnyType;
+  let type: ExType;
   if (typeof type_or_alias === "string") {
-    type = alias_to_type(type_or_alias) as AnyType;
+    type = alias_to_type(type_or_alias) as ExType;
   } else {
     type = type_or_alias;
   }

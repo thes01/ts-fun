@@ -74,22 +74,22 @@ export function boolean_type(): BooleanType {
   };
 }
 
-export interface ArrayType<T extends TypeBase = AnyType> extends TypeBase {
+export interface ArrayType<T extends TypeBase = ExType> extends TypeBase {
   primary_type: "array";
   specifiers: {
     element_type: T;
   };
 }
 
-export function array_type<T extends TypeBase>(element_type: T): ArrayType<T> {
+export function array_type<T extends TypeOrAlias>(element_type: T): ArrayType<FullType<T>> {
   return {
     primary_type: "array",
-    specifiers: { element_type },
+    specifiers: { element_type: get_full_type(element_type) },
   };
 }
 
 export interface ObjectType<
-  P extends Record<string, TypeBase> = Record<string, AnyType>
+  P extends Record<string, TypeBase> = Record<string, ExType>
 > extends TypeBase {
   primary_type: "object";
   specifiers: {
@@ -107,8 +107,8 @@ export function object_type<P extends Record<string, TypeBase>>(
 }
 
 export interface FunctionType<
-  Args extends Record<string, TypeBase> = Record<string, AnyType>,
-  O extends TypeBase = AnyType
+  Args extends Record<string, TypeBase> = Record<string, ExType>,
+  O extends TypeBase = ExType
 > extends TypeBase {
   primary_type: "function";
   specifiers: {
@@ -117,6 +117,7 @@ export interface FunctionType<
   };
 }
 
+// Mock interface
 export type NodeType = "field" | "list" | "space";
 export interface NodeTypeToValue {
   field: 1;
@@ -171,8 +172,8 @@ export type InferValueFromType<T extends TypeBase> = T extends StringType<
   ? SceneObjectValue<N>
   : T extends FunctionType<infer A, infer O>
   ? FunctionValue<InferProperties<A>, InferValueFromType<O>>
-  : T extends UnionType<infer U1, infer U2>
-  ? InferValueFromType<U1> | InferValueFromType<U2>
+  : T extends UnionType<infer U>
+  ? InferValueFromType<U[number]>
   : T extends UnknownType
   ? AnyValue
   : never;
@@ -181,29 +182,27 @@ type InferProperties<P extends Record<string, TypeBase>> = {
   [K in keyof P]: InferValueFromType<P[K]>;
 };
 
-export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
+export interface UnionType<T extends readonly TypeBase[]>
   extends TypeBase {
   primary_type: "union";
   specifiers: {
-    t1: T1;
-    t2: T2;
+    types: T;
   };
 }
 
-export function union_type<T1 extends TypeBase, T2 extends TypeBase>(
-  t1: T1,
-  t2: T2
-): UnionType<T1, T2> {
+export function union_type<const T extends readonly TypeBase[]>(
+  types: T
+): UnionType<T> {
   return {
     primary_type: "union",
-    specifiers: { t1, t2 },
+    specifiers: { types },
   };
 }
 
-type OptionalType<T extends TypeBase> = UnionType<T, UndefinedType>;
+type OptionalType<T extends TypeOrAlias> = UnionType<[FullType<T>, UndefinedType]>;
 
-export function optional_type<T extends TypeBase>(type: T): OptionalType<T> {
-  return union_type(type, undefined_type());
+export function optional_type<T extends TypeOrAlias>(type: T): OptionalType<T> {
+  return union_type([get_full_type(type), undefined_type()]);
 }
 
 export interface UnknownType extends TypeBase {
@@ -219,7 +218,7 @@ export function unknown_type(): UnknownType {
 }
 
 // TODO: rename
-export type AnyType =
+export type ExType =
   | StringType
   | NumberType
   | BooleanType
@@ -228,3 +227,46 @@ export type AnyType =
   | ObjectType
   | SceneObjectType
   | FunctionType;
+
+const number_type_map = {
+  scalar: number_type("scalar"),
+  length: number_type("length"),
+  angle: number_type("angle"),
+};
+
+const scene_object_map = {
+  field: scene_object_type("field"),
+  list: scene_object_type("list"),
+  space: scene_object_type("space"),
+};
+
+const type_map = {
+  ...number_type_map,
+  ...scene_object_map,
+  string: string_type("string"),
+  number: number_type("scalar"),
+  boolean: boolean_type(),
+  undefined: undefined_type(),
+  unknown: unknown_type(),
+};
+
+
+type TypeMap = typeof type_map;
+type TypeAlias = keyof TypeMap;
+// TODO: might not be necessary
+interface TTypeMap extends TypeMap {
+  [key: string]: TypeBase;
+}
+type AliasToType<T extends string> = TTypeMap[T];
+
+// TODO: Rename
+type TypeOrAlias = TypeBase | TypeAlias;
+
+type FullType<T extends TypeBase | string> = T extends string ? AliasToType<T> : T;
+
+export function get_full_type<T extends TypeBase | TypeAlias, Result = FullType<T>>(type: T): Result {
+  if (typeof type === "string") {
+    return type_map[type as TypeAlias] as Result;
+  }
+  return type as unknown as Result;
+}
