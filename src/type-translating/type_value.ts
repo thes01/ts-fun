@@ -2,7 +2,7 @@ import {
   string_type,
   type AnyType,
   type ArrayType,
-  type InferValue,
+  type InferValueFromType,
   type ObjectType,
 } from "./type";
 import { alias_to_type, type InferFrom, type TypeAlias } from "./type_alias";

@@ -7,14 +7,16 @@ import {
   string_type,
   undefined_type,
   unknown_type,
+  type AnyType,
   type ArrayType,
   type FunctionType,
-  type InferValue,
+  type InferValueFromType,
   type ObjectType,
   type StringType,
   type TypeBase,
   type UndefinedType,
   type UnionType,
+  type UnknownType,
 } from "./type";
 
 const number_type_map = {
@@ -46,20 +48,24 @@ const type_map = {
 
 type TypeMap = typeof type_map;
 
+interface TTypeMap extends TypeMap {
+  [key: string]: TypeBase;
+}
+
 export type TypeAlias = keyof TypeMap;
 
-export type AliasToType<T extends TypeAlias> = TypeMap[T];
+export type AliasToType<T extends string> = TTypeMap[T];
 
 export function alias_to_type<T extends TypeAlias>(alias: T): AliasToType<T> {
   return type_map[alias];
 }
 
-export type InferFromAlias<T extends TypeAlias> = InferValue<TypeMap[T]>;
+export type InferFromAlias<T extends string> = InferValueFromType<AliasToType<T>>;
 
-export type InferFrom<T extends TypeAlias | TypeBase> = T extends TypeAlias
+export type InferFrom<T extends string | TypeBase> = T extends string
   ? InferFromAlias<T>
   : T extends TypeBase
-  ? InferValue<T>
+  ? InferValueFromType<T>
   : never;
 
 type _t = InferFrom<"unknown">;

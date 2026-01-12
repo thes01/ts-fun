@@ -168,15 +168,4 @@ export function simplify_value<V extends AnyValue>(
   return value.value as SimplifiedValue<V>;
 }
 
-// declare const b: AnyValue;
-
-// if (b.primary_type === "number") {
-//   b.number_type;
-// }
-
-// if (b.primary_type === "scene_object") {
-//   if (b.node_type === "field") {
-//     // YAY!
-//     b.value satisfies 1;
-//   }
-// }
+declare const a: FunctionValue<{ x: NumberValue }, NumberValue>;

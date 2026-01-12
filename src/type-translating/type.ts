@@ -153,7 +153,7 @@ export function undefined_type(): UndefinedType {
   };
 }
 
-export type InferValue<T extends TypeBase> = T extends StringType<
+export type InferValueFromType<T extends TypeBase> = T extends StringType<
   infer E extends StringEnumType
 >
   ? StringValue<InferStringValue<E>>
@@ -164,21 +164,21 @@ export type InferValue<T extends TypeBase> = T extends StringType<
   : T extends UndefinedType
   ? UndefinedValue
   : T extends ArrayType<infer U>
-  ? ArrayValue<InferValue<U>>
+  ? ArrayValue<InferValueFromType<U>>
   : T extends ObjectType<infer P>
   ? ObjectValue<InferProperties<P>>
   : T extends SceneObjectType<infer N extends NodeType>
   ? SceneObjectValue<N>
   : T extends FunctionType<infer A, infer O>
-  ? FunctionValue<InferProperties<A>, InferValue<O>>
+  ? FunctionValue<InferProperties<A>, InferValueFromType<O>>
   : T extends UnionType<infer U1, infer U2>
-  ? InferValue<U1> | InferValue<U2>
+  ? InferValueFromType<U1> | InferValueFromType<U2>
   : T extends UnknownType
   ? AnyValue
   : never;
 
 type InferProperties<P extends Record<string, TypeBase>> = {
-  [K in keyof P]: InferValue<P[K]>;
+  [K in keyof P]: InferValueFromType<P[K]>;
 };
 
 export interface UnionType<T1 extends TypeBase, T2 extends TypeBase>
