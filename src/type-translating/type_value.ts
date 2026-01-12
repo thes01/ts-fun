@@ -44,7 +44,7 @@ export function value_matches<T extends AnyType | TypeAlias>(
   }
 
   value.primary_type satisfies "boolean" | "undefined" | "string" | "function";
-  return value.primary_type === type.primary;
+  return value.primary_type === type.primary_type;
 }
 
 function array_value_matches_type(value: ArrayValue, type: ArrayType): boolean {
