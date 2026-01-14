@@ -1,7 +1,7 @@
 import type { InferStringValue, StringEnumType } from "./enum";
 import type { NodeType, NodeTypeToValue, PrimaryType } from "./type";
 
-interface ValueBase {
+export interface ValueBase {
   primary_type: PrimaryType;
   value: unknown;
 }
