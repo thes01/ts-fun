@@ -1,16 +1,21 @@
 import { err, ok, type Result } from "../../result";
 import type { AnyValueSource } from "../source";
+import type { ExType } from "../type";
 import type { AnyValue } from "../value";
 
 type AnyValueResult = Result<AnyValue, string[]>;
 
-export function source_value_to_value(source_value: AnyValueSource, evaluate: (content: string) => AnyValueResult): AnyValueResult {
+export function source_value_to_value(
+    source_value: AnyValueSource, 
+    expression_type: ExType,
+    evaluate: (content: string) => AnyValueResult
+): AnyValueResult {
     if (source_value.source === 'expression') {
         return evaluate(source_value.sources.expression);
     }
 
     // Trivial cases
-    if (source_value.primary_type === 'number') {
+    if (source_value.value_type === 'number') {
         // Convert units to base units.
         return ok({
             primary_type: 'number',
@@ -19,8 +24,13 @@ export function source_value_to_value(source_value: AnyValueSource, evaluate: (c
             number_type: 'length',
         })
     }
-    if (source_value.primary_type === 'array') {
-        const element_values = source_value.value.map(val => source_value_to_value(val, evaluate));
+    if (source_value.value_type === 'array') {
+        if (expression_type.primary_type !== 'array') {
+            return err(['validation error']);
+        }
+        const element_type = expression_type.specifiers.element_type;
+
+        const element_values = source_value.value.map(val => source_value_to_value(val, element_type, evaluate));
         const success_values = element_values.filter(v => v.success).map(v => v.data);
         const errors = element_values.filter(v => !v.success).flatMap(v => v.error);
         if (errors.length > 0) {
@@ -31,11 +41,19 @@ export function source_value_to_value(source_value: AnyValueSource, evaluate: (c
             value: success_values,
         });
     }
-    if (source_value.primary_type === 'object') {
+    if (source_value.value_type === 'object') {
+        if (expression_type.primary_type !== 'object') {
+            return err(['validation error']);
+        }
+
         const property_values: Record<string, AnyValue> = {};
         const errors: string[] = [];
         for (const [key, val] of Object.entries(source_value.value)) {
-            const result = source_value_to_value(val, evaluate);
+            const property_type  = expression_type.specifiers.properties[key];
+            if (property_type === undefined) {
+                return err([`validation error: Property ${key} not defined in type.`]);
+            }
+            const result = source_value_to_value(val, property_type, evaluate);
             if (result.success) {
                 property_values[key] = result.data;
             } else {
@@ -50,6 +68,6 @@ export function source_value_to_value(source_value: AnyValueSource, evaluate: (c
             value: property_values,
         });
     }
-    source_value.primary_type satisfies 'string' | 'boolean' | 'undefined';
+    source_value.value_type satisfies 'string' | 'boolean' | 'undefined';
     return ok(source_value);
 }
