@@ -314,19 +314,37 @@ export type ResolvedType<T extends SourceType> =
   T;
 
 
-// export function resolve_type<T extends ExType>(type: T): ResolvedType<T> {
-//   if ("primary_type" in type) {
-//     return type as ResolvedType<T>;
-//   }
-//   if (type.type_alias === 'list_item') {
-//     return list_item_resolved(resolve_type(type.parameters.value_type) as never) as ResolvedType<T>;
-//   }
-//   type.type_alias satisfies 'optional';
-//   return optional_resolved(resolve_type(type.parameters.value_type)) as ResolvedType<T>;
-// }
+export function resolve_type<T extends SourceType>(type: T): ResolvedType<T> {
+  const parameters = type.parameters as any;
+  if ("primary_type" in type) {
+    if (type.primary_type === 'array') {
+      const resolved_element_type = resolve_type(parameters.element_type);
+      return array_type(resolved_element_type) as ResolvedType<T>;
+    }
+    if (type.primary_type === 'object') {
+      const props = parameters.properties;
+      const resolved_props: Record<string, SourceType> = {};
+      for (const key in props) {
+        resolved_props[key] = resolve_type(props[key]);
+      }
+      return object_type(resolved_props) as ResolvedType<T>;
+    }
+    return type as ResolvedType<T>;
+  }
+  if (type.type_alias === 'list_item') {
+    return list_item_resolved(resolve_type(parameters.value_type)) as ResolvedType<T>;
+  }
+  if (type.type_alias === 'optional') {
+    return optional_resolved(resolve_type(parameters.value_type)) as ResolvedType<T>;
+  }
+  throw new Error("Unexpected.");
+}
 
 
+const a = list_item_alias_type(array_type(optional_type_alias(number_type('length'))));
+const resolved = resolve_type(a);
 
-type A = ListItemType<ArrayType<OptionalTypeAlias<NumberType<'length'>>>>;
+console.log(JSON.stringify(resolved, null, 2));
+// type A = ListItemType<ArrayType<OptionalTypeAlias<NumberType<'length'>>>>;
 
-type AA = ResolvedType<A>;
+// type AA = ResolvedType<A>;
