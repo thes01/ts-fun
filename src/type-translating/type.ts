@@ -26,6 +26,13 @@ export interface TypeBase {
   specifiers: unknown;
 }
 
+interface TypeAliasBase {
+  type_alias: string;
+  specifiers: unknown;
+}
+
+export type SourceType = TypeBase | TypeAliasBase;
+
 export interface StringType<E extends StringEnumType = "string">
   extends TypeBase {
   primary_type: "string";
@@ -74,22 +81,36 @@ export function boolean_type(): BooleanType {
   };
 }
 
-export interface ArrayType<T extends TypeBase = ExType> extends TypeBase {
+export interface ArrayType<T extends SourceType = ExType> extends TypeBase {
   primary_type: "array";
   specifiers: {
     element_type: T;
   };
 }
 
-export function array_type<T extends TypeOrAlias>(element_type: T): ArrayType<FullType<T>> {
+export function array_type<T extends SourceType = ExType>(element_type: T): ArrayType<T> {
   return {
     primary_type: "array",
-    specifiers: { element_type: get_full_type(element_type) },
+    specifiers: { element_type },
   };
 }
 
+export interface ListItemType<T extends SourceType = ExType> extends TypeAliasBase {
+  type_alias: "list_item";
+  specifiers: {
+    value_type: T
+  }
+}
+
+export function list_item_alias_type<T extends SourceType>(value_type: T): ListItemType<T> {
+  return {
+    type_alias: "list_item",
+    specifiers: { value_type }
+  }
+} 
+
 export interface ObjectType<
-  P extends Record<string, TypeBase> = Record<string, ExType>
+  P extends Record<string, SourceType> = Record<string, ExType>
 > extends TypeBase {
   primary_type: "object";
   specifiers: {
@@ -97,7 +118,7 @@ export interface ObjectType<
   };
 }
 
-export function object_type<P extends Record<string, TypeBase>>(
+export function object_type<P extends Record<string, SourceType> = Record<string, ExType>>(
   properties: P
 ): ObjectType<P> {
   return {
@@ -106,16 +127,16 @@ export function object_type<P extends Record<string, TypeBase>>(
   };
 }
 
-export interface FunctionType<
-  Args extends Record<string, TypeBase> = Record<string, ExType>,
-  O extends TypeBase = ExType
-> extends TypeBase {
-  primary_type: "function";
-  specifiers: {
-    args: Args;
-    output: O;
-  };
-}
+// export interface FunctionType<
+//   Args extends Record<string, TypeBase> = Record<string, ExType>,
+//   O extends TypeBase = ExType
+// > extends TypeBase {
+//   primary_type: "function";
+//   specifiers: {
+//     args: Args;
+//     output: O;
+//   };
+// }
 
 // Mock interface
 export type NodeType = "field" | "list" | "space";
@@ -154,7 +175,7 @@ export function undefined_type(): UndefinedType {
   };
 }
 
-export type InferValueFromType<T extends TypeBase> = T extends StringType<
+export type InferValueFromType<T extends SourceType> = T extends StringType<
   infer E extends StringEnumType
 >
   ? StringValue<InferStringValue<E>>
@@ -170,19 +191,19 @@ export type InferValueFromType<T extends TypeBase> = T extends StringType<
   ? ObjectValue<InferProperties<P>>
   : T extends SceneObjectType<infer N extends NodeType>
   ? SceneObjectValue<N>
-  : T extends FunctionType<infer A, infer O>
-  ? FunctionValue<InferProperties<A>, InferValueFromType<O>>
+  // : T extends FunctionType<infer A, infer O>
+  // ? FunctionValue<InferProperties<A>, InferValueFromType<O>>
   : T extends UnionType<infer U>
   ? InferValueFromType<U[number]>
   : T extends UnknownType
   ? AnyValue
   : never;
 
-type InferProperties<P extends Record<string, TypeBase>> = {
+type InferProperties<P extends Record<string, SourceType>> = {
   [K in keyof P]: InferValueFromType<P[K]>;
 };
 
-export interface UnionType<T extends readonly TypeBase[]>
+export interface UnionType<T extends readonly SourceType[]>
   extends TypeBase {
   primary_type: "union";
   specifiers: {
@@ -190,7 +211,7 @@ export interface UnionType<T extends readonly TypeBase[]>
   };
 }
 
-export function union_type<const T extends readonly TypeBase[]>(
+export function union_type<const T extends readonly SourceType[]>(
   types: T
 ): UnionType<T> {
   return {
@@ -199,10 +220,18 @@ export function union_type<const T extends readonly TypeBase[]>(
   };
 }
 
-type OptionalType<T extends TypeOrAlias> = UnionType<[FullType<T>, UndefinedType]>;
+interface OptionalTypeAlias<T extends SourceType = ExType> extends TypeAliasBase {
+  type_alias: "optional";
+  specifiers: {
+    value_type: T;
+  };
+}
 
-export function optional_type<T extends TypeOrAlias>(type: T): OptionalType<T> {
-  return union_type([get_full_type(type), undefined_type()]);
+export function optional_type_alias<T extends SourceType>(value_type: T): OptionalTypeAlias<T> {
+  return {
+    type_alias: "optional",
+    specifiers: { value_type },
+  };
 }
 
 export interface UnknownType extends TypeBase {
@@ -226,7 +255,10 @@ export type ExType =
   | ArrayType
   | ObjectType
   | SceneObjectType
-  | FunctionType;
+  // Type Aliases
+  | ListItemType
+  | OptionalTypeAlias;
+  // | FunctionType;
 
 const number_type_map = {
   scalar: number_type("scalar"),
@@ -250,23 +282,51 @@ const type_map = {
   unknown: unknown_type(),
 };
 
-
-type TypeMap = typeof type_map;
-type TypeAlias = keyof TypeMap;
-// TODO: might not be necessary
-interface TTypeMap extends TypeMap {
-  [key: string]: TypeBase;
+function list_item_resolved<T extends SourceType>(value_type: T): ListItemResolved<T> {
+  return object_type({
+    key: string_type(),
+    label: string_type(),
+    value: value_type,
+  });
 }
-type AliasToType<T extends string> = TTypeMap[T];
 
-// TODO: Rename
-type TypeOrAlias = TypeBase | TypeAlias;
+type ListItemResolved<T extends SourceType> = ObjectType<{
+  key: StringType;
+  label: StringType;
+  value: T;
+  // image
+}>;
 
-type FullType<T extends TypeBase | string> = T extends string ? AliasToType<T> : T;
-
-export function get_full_type<T extends TypeBase | TypeAlias, Result = FullType<T>>(type: T): Result {
-  if (typeof type === "string") {
-    return type_map[type as TypeAlias] as Result;
-  }
-  return type as unknown as Result;
+function optional_resolved<T extends SourceType>(value_type: T): OptionalResolved<T> {
+  return union_type([value_type, undefined_type()]);
 }
+
+type OptionalResolved<T extends SourceType> = UnionType<[
+  T,
+  UndefinedType
+]>;
+
+export type ResolvedType<T extends SourceType> = 
+  T extends ArrayType<infer E> ? ArrayType<ResolvedType<E>> :
+  T extends ObjectType<infer P> ? ObjectType<{ [K in keyof P]: ResolvedType<P[K]> }> :
+  T extends ListItemType<infer V> ? ListItemResolved<ResolvedType<V>> : 
+  T extends OptionalTypeAlias<infer V> ? OptionalResolved<ResolvedType<V>> : 
+  T;
+
+
+// export function resolve_type<T extends ExType>(type: T): ResolvedType<T> {
+//   if ("primary_type" in type) {
+//     return type as ResolvedType<T>;
+//   }
+//   if (type.type_alias === 'list_item') {
+//     return list_item_resolved(resolve_type(type.specifiers.value_type) as never) as ResolvedType<T>;
+//   }
+//   type.type_alias satisfies 'optional';
+//   return optional_resolved(resolve_type(type.specifiers.value_type)) as ResolvedType<T>;
+// }
+
+
+
+type A = ListItemType<ArrayType<OptionalTypeAlias<NumberType<'length'>>>>;
+
+type AA = ResolvedType<A>;
