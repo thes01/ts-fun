@@ -1,28 +1,27 @@
 import type { InferStringValue, StringEnumType } from "./enum";
 import type { NodeType, NodeTypeToValue, PrimaryType } from "./type";
+import type { UnitType } from "./unit";
 
 export interface ValueBase {
   primary_type: PrimaryType;
   value: unknown;
 }
 
-export type NumberType = "scalar" | "length" | "angle";
-
-export interface NumberValue<U extends NumberType = NumberType>
+export interface NumberValue<U extends UnitType = UnitType>
   extends ValueBase {
   primary_type: "number";
   value: number;
-  number_type: U;
+  unit_type: U;
 }
 
 export function number_value(
   value: number,
-  number_type: NumberType
+  unit_type: UnitType
 ): NumberValue {
   return {
     primary_type: "number",
     value,
-    number_type,
+    unit_type,
   };
 }
 

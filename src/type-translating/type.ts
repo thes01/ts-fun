@@ -1,4 +1,5 @@
 import type { InferStringValue, StringEnumType } from "./enum";
+import type { UnitType } from "./unit";
 import type {
   AnyValue,
   ArrayValue,
@@ -50,22 +51,20 @@ export function string_type<E extends StringEnumType = "string">(
   };
 }
 
-export type NumberUnitType = "scalar" | "length" | "angle";
-
-export interface NumberType<T extends NumberUnitType = "scalar">
+export interface NumberType<T extends UnitType = "scalar">
   extends TypeBase {
   primary_type: "number";
   parameters: {
-    number_type: T;
+    unit_type: T;
   };
 }
 
-export function number_type<T extends NumberUnitType>(
-  number_type: T
+export function number_type<T extends UnitType>(
+  unit_type: T
 ): NumberType<T> {
   return {
     primary_type: "number",
-    parameters: { number_type },
+    parameters: { unit_type },
   };
 }
 
@@ -179,7 +178,7 @@ export type InferValueFromType<T extends SourceType> = T extends StringType<
   infer E extends StringEnumType
 >
   ? StringValue<InferStringValue<E>>
-  : T extends NumberType<infer U extends NumberUnitType>
+  : T extends NumberType<infer U extends UnitType>
   ? NumberValue<U>
   : T extends BooleanType
   ? BooleanValue
@@ -258,7 +257,6 @@ export type ExType =
   // Type Aliases
   | ListItemType
   | OptionalTypeAlias;
-  // | FunctionType;
 
 const number_type_map = {
   scalar: number_type("scalar"),
