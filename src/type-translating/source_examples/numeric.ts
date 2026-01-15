@@ -24,7 +24,7 @@ const length_source_flattened = {
 	// Flattened value
     primary_type: 'number',
     value: 10,
-	specifiers: {
+	parameters: {
 		unit: 'dm', // Extended unit.
 	},
 

@@ -23,12 +23,12 @@ export type PrimaryType =
 
 export interface TypeBase {
   primary_type: PrimaryType | "union" | "unknown";
-  specifiers: unknown;
+  parameters: unknown;
 }
 
 interface TypeAliasBase {
   type_alias: string;
-  specifiers: unknown;
+  parameters: unknown;
 }
 
 export type SourceType = TypeBase | TypeAliasBase;
@@ -36,7 +36,7 @@ export type SourceType = TypeBase | TypeAliasBase;
 export interface StringType<E extends StringEnumType = "string">
   extends TypeBase {
   primary_type: "string";
-  specifiers: {
+  parameters: {
     enum_type: E;
   };
 }
@@ -46,7 +46,7 @@ export function string_type<E extends StringEnumType = "string">(
 ): StringType<E> {
   return {
     primary_type: "string",
-    specifiers: { enum_type: enum_type ?? ("string" as E) },
+    parameters: { enum_type: enum_type ?? ("string" as E) },
   };
 }
 
@@ -55,7 +55,7 @@ export type NumberUnitType = "scalar" | "length" | "angle";
 export interface NumberType<T extends NumberUnitType = "scalar">
   extends TypeBase {
   primary_type: "number";
-  specifiers: {
+  parameters: {
     number_type: T;
   };
 }
@@ -65,25 +65,25 @@ export function number_type<T extends NumberUnitType>(
 ): NumberType<T> {
   return {
     primary_type: "number",
-    specifiers: { number_type },
+    parameters: { number_type },
   };
 }
 
 export interface BooleanType extends TypeBase {
   primary_type: "boolean";
-  specifiers: undefined;
+  parameters: undefined;
 }
 
 export function boolean_type(): BooleanType {
   return {
     primary_type: "boolean",
-    specifiers: undefined,
+    parameters: undefined,
   };
 }
 
 export interface ArrayType<T extends SourceType = ExType> extends TypeBase {
   primary_type: "array";
-  specifiers: {
+  parameters: {
     element_type: T;
   };
 }
@@ -91,13 +91,13 @@ export interface ArrayType<T extends SourceType = ExType> extends TypeBase {
 export function array_type<T extends SourceType = ExType>(element_type: T): ArrayType<T> {
   return {
     primary_type: "array",
-    specifiers: { element_type },
+    parameters: { element_type },
   };
 }
 
 export interface ListItemType<T extends SourceType = ExType> extends TypeAliasBase {
   type_alias: "list_item";
-  specifiers: {
+  parameters: {
     value_type: T
   }
 }
@@ -105,7 +105,7 @@ export interface ListItemType<T extends SourceType = ExType> extends TypeAliasBa
 export function list_item_alias_type<T extends SourceType>(value_type: T): ListItemType<T> {
   return {
     type_alias: "list_item",
-    specifiers: { value_type }
+    parameters: { value_type }
   }
 } 
 
@@ -113,7 +113,7 @@ export interface ObjectType<
   P extends Record<string, SourceType> = Record<string, ExType>
 > extends TypeBase {
   primary_type: "object";
-  specifiers: {
+  parameters: {
     properties: P;
   };
 }
@@ -123,7 +123,7 @@ export function object_type<P extends Record<string, SourceType> = Record<string
 ): ObjectType<P> {
   return {
     primary_type: "object",
-    specifiers: { properties },
+    parameters: { properties },
   };
 }
 
@@ -132,7 +132,7 @@ export function object_type<P extends Record<string, SourceType> = Record<string
 //   O extends TypeBase = ExType
 // > extends TypeBase {
 //   primary_type: "function";
-//   specifiers: {
+//   parameters: {
 //     args: Args;
 //     output: O;
 //   };
@@ -149,7 +149,7 @@ export interface NodeTypeToValue {
 export interface SceneObjectType<T extends NodeType = NodeType>
   extends TypeBase {
   primary_type: "scene_object";
-  specifiers: {
+  parameters: {
     scene_object_type: T;
   };
 }
@@ -159,19 +159,19 @@ export function scene_object_type<T extends NodeType>(
 ): SceneObjectType<T> {
   return {
     primary_type: "scene_object",
-    specifiers: { scene_object_type },
+    parameters: { scene_object_type },
   };
 }
 
 export interface UndefinedType extends TypeBase {
   primary_type: "undefined";
-  specifiers: undefined;
+  parameters: undefined;
 }
 
 export function undefined_type(): UndefinedType {
   return {
     primary_type: "undefined",
-    specifiers: undefined,
+    parameters: undefined,
   };
 }
 
@@ -206,7 +206,7 @@ type InferProperties<P extends Record<string, SourceType>> = {
 export interface UnionType<T extends readonly SourceType[]>
   extends TypeBase {
   primary_type: "union";
-  specifiers: {
+  parameters: {
     types: T;
   };
 }
@@ -216,13 +216,13 @@ export function union_type<const T extends readonly SourceType[]>(
 ): UnionType<T> {
   return {
     primary_type: "union",
-    specifiers: { types },
+    parameters: { types },
   };
 }
 
 interface OptionalTypeAlias<T extends SourceType = ExType> extends TypeAliasBase {
   type_alias: "optional";
-  specifiers: {
+  parameters: {
     value_type: T;
   };
 }
@@ -230,19 +230,19 @@ interface OptionalTypeAlias<T extends SourceType = ExType> extends TypeAliasBase
 export function optional_type_alias<T extends SourceType>(value_type: T): OptionalTypeAlias<T> {
   return {
     type_alias: "optional",
-    specifiers: { value_type },
+    parameters: { value_type },
   };
 }
 
 export interface UnknownType extends TypeBase {
   primary_type: "unknown";
-  specifiers: undefined;
+  parameters: undefined;
 }
 
 export function unknown_type(): UnknownType {
   return {
     primary_type: "unknown",
-    specifiers: undefined,
+    parameters: undefined,
   };
 }
 
@@ -319,10 +319,10 @@ export type ResolvedType<T extends SourceType> =
 //     return type as ResolvedType<T>;
 //   }
 //   if (type.type_alias === 'list_item') {
-//     return list_item_resolved(resolve_type(type.specifiers.value_type) as never) as ResolvedType<T>;
+//     return list_item_resolved(resolve_type(type.parameters.value_type) as never) as ResolvedType<T>;
 //   }
 //   type.type_alias satisfies 'optional';
-//   return optional_resolved(resolve_type(type.specifiers.value_type)) as ResolvedType<T>;
+//   return optional_resolved(resolve_type(type.parameters.value_type)) as ResolvedType<T>;
 // }
 
 

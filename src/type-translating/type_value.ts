@@ -27,7 +27,7 @@ export function value_matches<T extends ExType | TypeAlias>(
   if (value.primary_type === "number") {
     return (
       type.primary_type === "number" &&
-      value.number_type === type.specifiers.number_type
+      value.number_type === type.parameters.number_type
     );
   }
   if (value.primary_type === "array") {
@@ -39,7 +39,7 @@ export function value_matches<T extends ExType | TypeAlias>(
   if (value.primary_type === "scene_object") {
     return (
       type.primary_type === "scene_object" &&
-      value.node_type === type.specifiers.scene_object_type
+      value.node_type === type.parameters.scene_object_type
     );
   }
 
@@ -49,7 +49,7 @@ export function value_matches<T extends ExType | TypeAlias>(
 
 function array_value_matches_type(value: ArrayValue, type: ArrayType): boolean {
   return value.value.every((v) =>
-    value_matches(v, type.specifiers.element_type)
+    value_matches(v, type.parameters.element_type)
   );
 }
 
@@ -58,7 +58,7 @@ function object_value_matches_type(
   type: ObjectType
 ): boolean {
   for (const [key, property] of Object.entries(value.value)) {
-    const property_type = type.specifiers.properties[key];
+    const property_type = type.parameters.properties[key];
     if (
       property_type === undefined ||
       !value_matches(property, property_type)

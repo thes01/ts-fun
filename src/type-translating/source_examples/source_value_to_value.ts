@@ -28,7 +28,7 @@ export function source_value_to_value(
         if (expression_type.primary_type !== 'array') {
             return err(['validation error']);
         }
-        const element_type = expression_type.specifiers.element_type;
+        const element_type = expression_type.parameters.element_type;
 
         const element_values = source_value.value.map(val => source_value_to_value(val, element_type, evaluate));
         const success_values = element_values.filter(v => v.success).map(v => v.data);
@@ -49,7 +49,7 @@ export function source_value_to_value(
         const property_values: Record<string, AnyValue> = {};
         const errors: string[] = [];
         for (const [key, val] of Object.entries(source_value.value)) {
-            const property_type  = expression_type.specifiers.properties[key];
+            const property_type  = expression_type.parameters.properties[key];
             if (property_type === undefined) {
                 return err([`validation error: Property ${key} not defined in type.`]);
             }
